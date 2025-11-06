@@ -1,0 +1,67 @@
+# Root .gitignore za MilanAirline projekat
+
+# Backend - Java/Maven
+MilanAirline/target/
+MilanAirline/.mvn/wrapper/maven-wrapper.jar
+MilanAirline/.idea/
+MilanAirline/*.iml
+MilanAirline/*.iws
+MilanAirline/*.ipr
+MilanAirline/.settings/
+MilanAirline/.classpath
+MilanAirline/.project
+MilanAirline/.springBeans
+MilanAirline/.sts4-cache
+
+# Frontend - Node.js/React
+milanairline-frontend/node_modules/
+milanairline-frontend/build/
+milanairline-frontend/dist/
+milanairline-frontend/.pnp
+milanairline-frontend/.pnp.js
+milanairline-frontend/coverage/
+milanairline-frontend/.env.local
+milanairline-frontend/.env.development.local
+milanairline-frontend/.env.test.local
+milanairline-frontend/.env.production.local
+milanairline-frontend/npm-debug.log*
+milanairline-frontend/yarn-debug.log*
+milanairline-frontend/yarn-error.log*
+
+# Osetljivi podaci - NIKADA NE COMMIT-OVATI!
+MilanAirline/src/main/resources/application.properties
+MilanAirline/src/main/resources/application-dev.properties
+MilanAirline/src/main/resources/application-prod.properties
+*.env
+*.key
+*.pem
+*.p12
+*.jks
+
+# OS fajlovi
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Log fajlovi
+*.log
+logs/
+
+# Temporary fajlovi
+*.tmp
+*.temp
+*.bak
+*.cache
+

@@ -1,0 +1,10 @@
+package com.milan.MilanAirline.repo;
+
+import com.milan.MilanAirline.entities.Booking;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+
+public interface BookingRepo extends JpaRepository<Booking, Long> {
+    List<Booking> findByUserIdOrderByIdDesc(Long userId);
+
+}
