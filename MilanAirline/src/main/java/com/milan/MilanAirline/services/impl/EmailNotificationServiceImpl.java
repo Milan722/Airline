@@ -15,6 +15,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
@@ -31,7 +32,7 @@ public class EmailNotificationServiceImpl implements EmailNotificationService {
     private final EmailNotificationRepo emailNotificationRepo;
     private final JavaMailSender javaMailSender;
     private final TemplateEngine templateEngine;
-
+    private final RestTemplate restTemplate;
 
     @Value("${frontendLoginUrl}")
     private String frontendLoginUrl;
@@ -39,6 +40,14 @@ public class EmailNotificationServiceImpl implements EmailNotificationService {
     @Value("${viewBookingUrl}")
     private String viewBookingUrl;
 
+    @Value("${resend.api.key:}")
+    private String resendApiKey;
+
+    @Value("${resend.from.email:}")
+    private String resendFromEmail;
+
+    @Value("${resend.api.url:https://api.resend.com}")
+    private String resendApiUrl;
 
     @Override
     @Transactional
@@ -103,9 +112,28 @@ public class EmailNotificationServiceImpl implements EmailNotificationService {
     }
 
     private void sendMailout(String recipientEmail,String subject,String body,boolean isHtml, Booking booking){
-
-        try {
-            MimeMessage mimeMessage=javaMailSender.createMimeMessage();
+        boolean emailSent = false;
+        
+        // Ako je Resend API key podešen, koristi Resend HTTP API
+        if (resendApiKey != null && !resendApiKey.isEmpty() && 
+            resendFromEmail != null && !resendFromEmail.isEmpty()) {
+            try {
+                log.info("Sending email via Resend API to: {}", recipientEmail);
+                sendViaResend(recipientEmail, subject, body);
+                emailSent = true;
+                log.info("Email successfully sent via Resend API to: {}", recipientEmail);
+            } catch (Exception e) {
+                log.error("Failed to send email via Resend API: {}", e.getMessage(), e);
+                // Fallback na SMTP ako Resend ne radi
+                log.info("Falling back to SMTP...");
+            }
+        }
+        
+        // Ako Resend nije podešen ili je fallback, koristi SMTP
+        if (!emailSent) {
+            try {
+                log.info("Sending email via SMTP to: {}", recipientEmail);
+                MimeMessage mimeMessage=javaMailSender.createMimeMessage();
                 MimeMessageHelper helper=new MimeMessageHelper(
                         mimeMessage,
                         MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
@@ -115,15 +143,13 @@ public class EmailNotificationServiceImpl implements EmailNotificationService {
                 helper.setSubject(subject);
                 helper.setText(body,isHtml);
 
-                log.info("About to send email...");
                 javaMailSender.send(mimeMessage);
+                emailSent = true;
+                log.info("Email successfully sent via SMTP to: {}", recipientEmail);
 
-
-                log.info("Email sent out...");
-
-        } catch (Exception e) {
-            log.error(e.getMessage());
-
+            } catch (Exception e) {
+                log.error("Mail server connection failed. Failed messages: {}", e.getMessage(), e);
+            }
         }
 
         //save to the notification database table
@@ -137,5 +163,33 @@ public class EmailNotificationServiceImpl implements EmailNotificationService {
         emailNotification.setBooking(booking);
 
         emailNotificationRepo.save(emailNotification);
+        
+        if (!emailSent) {
+            log.warn("Email notification saved to database but email was not sent successfully to: {}", recipientEmail);
+        }
+    }
+
+    private void sendViaResend(String to, String subject, String htmlBody) {
+        try {
+            String url = resendApiUrl + "/emails";
+            
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(resendApiKey);
+            
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("from", resendFromEmail);
+            requestBody.put("to", new String[]{to});
+            requestBody.put("subject", subject);
+            requestBody.put("html", htmlBody);
+            
+            org.springframework.http.HttpEntity<Map<String, Object>> request = 
+                new org.springframework.http.HttpEntity<>(requestBody, headers);
+            
+            restTemplate.postForEntity(url, request, Map.class);
+        } catch (Exception e) {
+            log.error("Error sending email via Resend API: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 }
