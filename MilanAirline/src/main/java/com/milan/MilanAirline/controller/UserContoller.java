@@ -27,10 +27,9 @@ public class UserContoller {
 
     @GetMapping("/pilots")
     @PreAuthorize("hasAnyAuthority('ADMIN','PILOT')")
-    public ResponseEntity<Response<List<UserDTO>>> get(){
+    public ResponseEntity<Response<List<UserDTO>>> getAllPilots(){
         return ResponseEntity.ok(userService.getAllPilots());
     }
-
 
     @GetMapping("/me")
     public ResponseEntity<Response<UserDTO>> getAccountDetails(){
@@ -39,3 +38,4 @@ public class UserContoller {
 
 
 }
+
