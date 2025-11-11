@@ -53,6 +53,35 @@ const UpdateProfilePage=()=>{
 
         console.log("handleSubmit called")
 
+        // Full name regex validation - two words, each starting with capital letter
+        const fullNameRegex = /^[A-ZČĆŽŠĐ][a-zčćžšđ]+ [A-ZČĆŽŠĐ][a-zčćžšđ]+$/;
+        if(!fullNameRegex.test(user.name)){
+            showError("Full name must contain exactly two words, each starting with a capital letter")
+            return;
+        }
+
+        // Phone number validation - must start with + and contain only numbers after + (only if provided)
+        if(user.phoneNumber){
+            const phoneRegex = /^\+[0-9]+$/;
+            if(!phoneRegex.test(user.phoneNumber)){
+                showError("Phone number must start with + and contain only numbers")
+                return;
+            }
+        }
+
+        // Password validation (only if password is provided)
+        if(user.password){
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
+            if(!passwordRegex.test(user.password)){
+                showError("Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number")
+                return;
+            }
+
+            if(user.password !== user.confirmPassword){
+                showError("Password do not match")
+                return;
+            }
+        }
 
         try {
             const requestBody = {

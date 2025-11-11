@@ -31,6 +31,28 @@ const RegisterPage=()=>{
             showError("All fields are required")
             return;
         }
+
+        // Full name regex validation - two words, each starting with capital letter
+        const fullNameRegex = /^[A-ZČĆŽŠĐ][a-zčćžšđ]+ [A-ZČĆŽŠĐ][a-zčćžšđ]+$/;
+        if(!fullNameRegex.test(formData.name)){
+            showError("Full name must contain exactly two words, each starting with a capital letter")
+            return;
+        }
+
+        // Phone number validation - must start with + and contain only numbers after +
+        const phoneRegex = /^\+[0-9]+$/;
+        if(!phoneRegex.test(formData.phoneNumber)){
+            showError("Phone number must start with + and contain only numbers")
+            return;
+        }
+
+        // Password regex validation
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
+        if(!passwordRegex.test(formData.password)){
+            showError("Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number")
+            return;
+        }
+
         if(formData.password!==formData.confirmPassword){
             showError("Password do not match")
             return;
